@@ -64,12 +64,15 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Продолжить покупку")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Введите Ваш номер телефона (с +7)')
+    
     @dp.message_handler(lambda message:message.text.startswith("+7"), Client.phone)
     async def cmd_random(message: types.Message):
         await bot.send_message(message.from_user.id, 'Введите ваш адрес')
+        
         @dp.message_handler(Client.address)
         async def cmd_random(message: types.Message):
             await bot.send_message(message.from_user.id, 'Введите ваше Имя')
+            
             @dp.message_handler(Client.name)
             async def cmd_random(message: types.Message):
                 await bot.send_message(message.from_user.id, 'Введите ваше Имя')
