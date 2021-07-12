@@ -12,10 +12,25 @@ import markups as nav
 
 korzina:int = 0
 
-class Zakaz:
+class Pozicia:
     type:int
     quantity:int
     vkus:int
+
+    def __init__(self, type, quantity, vkus):
+        self.type = type
+        self.quantity = quantity
+        self.vkus = vkus  
+    
+    def ReturnPozicia(self):
+        self.pozicia = self.vkus + " " + self.type + " " + self.quantity
+        return self.pozicia 
+
+class Zakaz:
+    zakaz: list
+    def __init__(self, zakaz) -> None:
+        self.zakaz = zakaz
+    
 
 class Client:
     Name:str
