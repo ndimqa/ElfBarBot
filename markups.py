@@ -9,11 +9,9 @@ btnKorzina = KeyboardButton('Корзина')
 mainMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(btnKat, btnKorzina)
 
 #Каталог
-Zat_800 = KeyboardButton('ElfBar (800 Затяжек)')
-Zat_1500 = KeyboardButton('ElfBar (1500 Затяжек)')
-Lux_800 = KeyboardButton('Lux ElfBar (800 затяжек)')
-Lux_1500 = KeyboardButton('Lux ElfBar (1500 затяжек)')
-KatMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(Zat_800, Zat_1500, Lux_800, Lux_1500, btnMain)
+Zat_800 = KeyboardButton('ElfBar (800 Затяжек), Lux ElfBar (800 затяжек)')
+Zat_1500 = KeyboardButton('ElfBar (1500 Затяжек), Lux ElfBar (1500 затяжек)')
+KatMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(Zat_800, Zat_1500, btnMain)
 
 #Вкусы
 Vkus_1 = KeyboardButton('Вкус 1')
