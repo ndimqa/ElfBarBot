@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+
 from config import TOKEN  
 
 import asyncio
@@ -62,19 +65,21 @@ async def cmd_random(message: types.Message):
      await bot.send_message(message.from_user.id, 'Корзина', reply_markup=nav.KorzMenu)
 
 #Каталог
-    #Как будут известны вкусы для каждого ЭльфБара:
-    # @dp.message_handler(text="ElfBar (800 Затяжек), Zakaz.type = 1")
-    # async def cmd_random(message: types.Message):
-    #     await bot.send_message(message.from_user.id, 'Выберите вкус', reply_markup=nav.VkusMenu)
-    #    result: message = await SendPhoto()
-    # и т.д
+@dp.message_handler(text="ElfBar (800 Затяжек), Lux ElfBar (800 затяжек)")
+async def cmd_random(message: types.Message):
+    await bot.send_photo(message.from_user.id, Elf800, caption="Одноразовая электронная сигарета Elfbar 800 от одноименной компании компании. Поставляется в индивидуальной упаковке с концентрацией 5% никотина. Приятная тугая затяжка и насыщенные вкусы позволят в полной мере насладится данным устройством. Работает при помощи авто-затяжки и позволяет совершать до 800 затяжек.")
+
+
+@dp.message_handler(text="ElfBar (1500 Затяжек), Lux ElfBar (1500 затяжек)")
+async def cmd_random(message: types.Message):
+    await bot.send_photo(message.from_user.id, Elf1500, caption="Одноразовая электронная сигарета Elfbar 800 от одноименной компании компании. Поставляется в индивидуальной упаковке с концентрацией 5% никотина. Приятная тугая затяжка и насыщенные вкусы позволят в полной мере насладится данным устройством. Работает при помощи авто-затяжки и позволяет совершать до 800 затяжек.")
+#     # и т.д
               #Примерный расчет товара
             # @dp.message_handler(lambda message: not message.text.isdigit(), state=Zakaz.quantity)
             # async def cmd_random(message: types.Message):
             #    await bot.send_message(message.from_user.id, 'Введите нужно количество товара')
             #    korzina += 1
-
-
+            
 #Корзина
 @dp.message_handler(text="Продолжить покупку")
 async def cmd_random(message: types.Message):
