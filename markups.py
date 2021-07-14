@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 btnMain = KeyboardButton('⬅️ Главное меню')
 btnKorz = KeyboardButton('Корзина')
@@ -6,24 +6,31 @@ btnKorz = KeyboardButton('Корзина')
 #Главное меню
 btnKat = KeyboardButton('Каталог')
 btnKorzina = KeyboardButton('Корзина')
-mainMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(btnKat, btnKorzina)
+mainMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnKat, btnKorzina)
 
 #Каталог
-Zat_800 = KeyboardButton('ElfBar (800 Затяжек), Lux ElfBar (800 затяжек)')
-Zat_1500 = KeyboardButton('ElfBar (1500 Затяжек), Lux ElfBar (1500 затяжек)')
-KatMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(Zat_800, Zat_1500, btnMain)
+Zat_800 = KeyboardButton('ElfBar (800 Затяжек) \n Lux ElfBar (800 затяжек)')
+Zat_1500 = KeyboardButton('ElfBar (1500 Затяжек) \n Lux ElfBar (1500 затяжек)')
+KatMenu = ReplyKeyboardMarkup(row_width=1).add(Zat_800, Zat_1500, btnMain)
 
 #Вкусы
-Vkus_1 = KeyboardButton('Вкус 1')
-Vkus_2 = KeyboardButton('Вкус 2')
-Vkus_3 = KeyboardButton('Вкус 3')
-Vkus_4 = KeyboardButton('Вкус 4')
-VkusMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(Vkus_1, Vkus_2, Vkus_3, Vkus_4, btnKat)
+MainVkusBt = KeyboardButton('Перейти к вкусам')
+MainVkusMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(MainVkusBt)
+
+
+Vkus1 = InlineKeyboardButton('Strawberry ice', callback_data='button1')
+Vkus2 = InlineKeyboardButton('Mint', callback_data='button2')
+Vkus3 = InlineKeyboardButton('Mango', callback_data='button3')
+VkusMenu = InlineKeyboardMarkup(resize_keyboard=True, row_width=2).add(Vkus1, Vkus2, Vkus3)
+
+# Выбор количества
+MainKolBt = KeyboardButton('Перейти к выбору количества')
+MainKolMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(MainKolBt)
 
 #Корзина
 btnBuy = KeyboardButton('Продолжить покупку')
 btnDelete = KeyboardButton('Удалить товар')
 btnClear = KeyboardButton('Очистить корзину')
-KorzMenu = ReplyKeyboardMarkup(resize_keyboard = True).add(btnBuy, btnDelete, btnClear, btnMain)
+KorzMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnBuy, btnDelete, btnClear, btnMain)
 
 
