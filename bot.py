@@ -10,7 +10,7 @@ from aiogram.utils import executor
 
 import markups as nav
 
-korzina:int = 0
+korzina:int = 0 # quantity zakaza 
 
 class Pozicia:
     type:int
@@ -26,10 +26,16 @@ class Pozicia:
         self.pozicia = self.vkus + " " + self.type + " " + self.quantity
         return self.pozicia 
 
+    def ReturnQuantity(self):
+        return self.quantity
+
 class Zakaz:
     zakaz: list
-    def __init__(self, zakaz) -> None:
+    quantity: int
+
+    def __init__(self, zakaz, quantity):
         self.zakaz = zakaz
+        self.quantity = quantity
     
 
 class Client:
@@ -37,6 +43,11 @@ class Client:
     phone:str
     address:str
     Tov:Zakaz
+    def __init__(self,Name,phone, address, Tov):
+        self.Name = Name
+        self.phone = phone
+        self.address = address
+        self.Tov = Tov
         
 # Фотографии из корневой папки 
 Elf800 = open("ElfBar800.jpg", 'rb')
@@ -72,6 +83,9 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="ElfBar (800 Затяжек), Lux ElfBar (800 затяжек)")
 async def cmd_random(message: types.Message):
     await bot.send_photo(message.from_user.id, Elf800, caption="Одноразовая электронная сигарета Elfbar 800 от одноименной компании компании. Поставляется в индивидуальной упаковке с концентрацией 5% никотина. Приятная тугая затяжка и насыщенные вкусы позволят в полной мере насладится данным устройством. Работает при помощи авто-затяжки и позволяет совершать до 800 затяжек.")
+    #Должны быть кнопки со вкусами 
+    global pozicia
+    pozicia = Pozicia(800, 0, "Strawberry ice")
 
     
 @dp.message_handler(text="ElfBar (1500 Затяжек), Lux ElfBar (1500 затяжек)")
@@ -80,14 +94,18 @@ async def cmd_random(message: types.Message):
 
     
 #Примерный расчет товара
-@dp.message_handler(lambda message: not message.text.isdigit(), state=Zakaz.quantity)
+global quantity
+quantity = 0
+@dp.message_handler(quantity)#lambda message: not message.text.isdigit(), quantity 
+                             # разобраться
 async def cmd_random(message: types.Message):
-    await bot.send_message(message.from_user.id, 'Введите нужно количество товара')
+    await bot.send_message(message.from_user.id, 'Введите нужное количество товара')
     global korzina
     korzina += 1
+    pozicia.quantity = quantity
             
 #Корзина
-@dp.message_handler(text="Продолжить покупку")
+@dp.message_handler(text="Оформить заказ")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Введите Ваш номер телефона (с +7)')
     
@@ -106,6 +124,7 @@ async def cmd_random(message: types.Message):
             async def cmd_random(message: types.Message):
                 await bot.send_message(message.from_user.id, 'Готово!')
                 # На данном этапе класс клиента должен быть готов
+                # оплата заказа
 
 # Логика удаления и очищения корзины
 # @dp.message_handler(text="Удалить товар")
