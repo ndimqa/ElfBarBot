@@ -23,16 +23,13 @@ class Pozicia:
         self.vkus = vkus
 
     def ReturnPozicia(self):
-        self.pozicia = self.vkus + " " + self.type + " " + self.quantity
+        self.pozicia = self.vkus + " " + str(self.type) + " " + str(self.quantity)
         return self.pozicia
 
-
-pozicia: Pozicia
 
 
 class Zakaz:
     zakaz: list
-
     def __init__(self, zakaz) -> None:
         self.zakaz = zakaz
 
@@ -109,30 +106,30 @@ async def cmd_random(message: types.Message):
 async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfStraw, caption="Выбран вкус Strawberry ice", reply_markup=nav.MainKolMenu)
     global pozicia
-    pozicia = Pozicia(0, 0, "Strawberry ice")
+    pozicia.vkus = "Strawberry ice"
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button2')
 async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfMint, caption="Выбран вкус Mint", reply_markup=nav.MainKolMenu)
     global pozicia
-    pozicia = Pozicia(0, 0, "Mint")
+    pozicia.vkus = "Mint"
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button3')
 async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfMango, caption="Выбран вкус Mango", reply_markup=nav.MainKolMenu)
     global pozicia
-    pozicia = Pozicia(0, 0, "Mango")
+    pozicia.vkus = "Mango"
 
 
 # Выбор количества
 @dp.message_handler(text="Перейти к выбору количества")
-async def cmd_random(message: types.Message, quantity=None):
+async def cmd_random(message: types.Message, quantity = 2):
     await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15): ", quantity)
     global pozicia
-    pozicia = Pozicia(0, quantity, "Strawberry ice") # Перепроверить
-
+    pozicia.quantity = quantity
+    print(pozicia.ReturnPozicia()) # Перепроверить
 
 # Корзина
 @dp.message_handler(text="Оформить заказ")
