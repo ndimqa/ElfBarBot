@@ -9,6 +9,8 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
 import markups as nav
+import sqlite3
+
 
 korzina: int = 0
 
@@ -47,6 +49,17 @@ class Client:
     def SendToDB(self):
         pass
 
+    
+class SQLighter:
+
+    def __init__(self, database_file):
+        self.connection = sqlite3.connect(database_file)
+        self.cursor = self.connection.cursor()
+
+    def close(self):
+        self.connection.close()
+        
+        
 # Фотографии из корневой папки
 AllElfBar = open("AllElfBar.jpg", 'rb')
 ElfMint = open("Mint.jpg", 'rb')
