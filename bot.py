@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 
+from os import pathconf, pathconf_names
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
@@ -27,19 +28,24 @@ class Pozicia:
         return self.pozicia
 
 
-
 class Zakaz:
     zakaz: list
-    def __init__(self, zakaz) -> None:
+    def __init__(self, zakaz):
         self.zakaz = zakaz
-
 
 class Client:
     Name: str
     phone: str
     address: str
     Tov: Zakaz
+    def __init__(self, Name, phone, addres, Tov) -> None:
+        self.Name = Name
+        self.phone = phone
+        self.address = addres
+        self.Tov = Tov
 
+    def SendToDB(self):
+        pass
 
 # Фотографии из корневой папки
 AllElfBar = open("AllElfBar.jpg", 'rb')
