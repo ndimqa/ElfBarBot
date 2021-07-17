@@ -24,15 +24,24 @@ Vkus2 = InlineKeyboardButton('Mint', callback_data='button2')
 Vkus3 = InlineKeyboardButton('Mango', callback_data='button3')
 VkusMenu = InlineKeyboardMarkup(resize_keyboard=True, row_width=2).add(Vkus1, Vkus2, Vkus3)
 
+# Продолжить заказ
+ProdBtn = KeyboardButton('Продолжить заказ')
+OformBtn = KeyboardButton('Оформить заказ')
+DecMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(ProdBtn, OformBtn)
+
+# Да/нет
+YesBtn = KeyboardButton('Да')
+NoBtn = KeyboardButton('Нет')
+DecMenu1 = ReplyKeyboardMarkup(resize_keyboard=True).add(YesBtn, NoBtn)
+
 # Выбор количества
 MainKolBt = KeyboardButton('Перейти к выбору количества')
 MainKolMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(MainKolBt, btnKat, btnMain)
 
 #Корзина
-btnContinue = KeyboardButton('Продолжить покупку')
-btnBuy = KeyboardButton('Оформить заказ')
+btnBuy = KeyboardButton('Продолжить покупку')
 btnDelete = KeyboardButton('Удалить товар')
 btnClear = KeyboardButton('Очистить корзину')
-KorzMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnBuy, btnDelete, btnClear, btnMain, btnContinue)
+KorzMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnBuy, btnDelete, btnClear, btnMain)
 
 
