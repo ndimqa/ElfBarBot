@@ -144,11 +144,14 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
 
 # Выбор количества
 @dp.message_handler(text="Перейти к выбору количества")
-async def cmd_random(message: types.Message, quantity = 2):
-    await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15): ", quantity)
-    global pozicia
-    pozicia.quantity = quantity
-    print(pozicia.ReturnPozicia()) # Перепроверить
+async def cmd_random(message: types.Message):
+    await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15): ")
+    @dp.message_handler()
+    async def take_quantity(message: types.Message):
+        global pozicia
+        pozicia.quantity = message.text
+        print(pozicia.ReturnPozicia()) # Перепроверить
+        await message.reply("Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'")
 
 # Корзина
 @dp.message_handler(text="Оформить заказ")
