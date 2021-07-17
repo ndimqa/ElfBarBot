@@ -2,15 +2,13 @@
 # -*- coding: utf8 -*-
 
 
-from os import pathconf, pathconf_names
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
+from sqliter import SQLighter
 
 import markups as nav
-import sqlite3
-
 
 korzina: int = 0
 
@@ -30,16 +28,22 @@ class Pozicia:
         return self.pozicia
 
 
+pozicia: Pozicia
+
+
 class Zakaz:
     zakaz: list
+
     def __init__(self, zakaz):
         self.zakaz = zakaz
+
 
 class Client:
     Name: str
     phone: str
     address: str
-    Tov: Zakaz
+    Tov: Pozicia
+
     def __init__(self, Name, phone, addres, Tov) -> None:
         self.Name = Name
         self.phone = phone
@@ -49,17 +53,9 @@ class Client:
     def SendToDB(self):
         pass
 
-    
-class SQLighter:
 
-    def __init__(self, database_file):
-        self.connection = sqlite3.connect(database_file)
-        self.cursor = self.connection.cursor()
+db = SQLighter('Shop.db')
 
-    def close(self):
-        self.connection.close()
-        
-        
 # Фотографии из корневой папки
 AllElfBar = open("AllElfBar.jpg", 'rb')
 ElfMint = open("Mint.jpg", 'rb')
@@ -98,21 +94,23 @@ async def cmd_random(message: types.Message):
 # Каталог
 # Отправка фотографии и описания при нажатии
 @dp.message_handler(text="ElfBar (Lux) на 800 затяжек")
-async def cmd_random(message: types.Message):
+async def send_800(message: types.Message):
     await bot.send_photo(message.from_user.id, AllElfBar,
                          caption="Цена: 2100 \nОписание: Elf Bar 800 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 550мАч обеспечивает стабильность работы на протяжении 800 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
     global pozicia
-    pozicia=Pozicia(800, 0, "default") # Перепроверить
+    pozicia = Pozicia(800, 0, "default")  # Перепроверить
+    Client.Tov = Pozicia(800, 0, "default")
 
 
 @dp.message_handler(text="ElfBar (Lux) на 1500 затяжек")
-async def cmd_random(message: types.Message):
+async def send_1500(message: types.Message):
     await bot.send_photo(message.from_user.id, AllElfBar,
                          caption="Цена: *цена* \nОписание: Elf Bar 1500 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 850мАч обеспечивает стабильность работы на протяжении 1500 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
     global pozicia
-    pozicia = Pozicia(1500, 0, "default") # Перепроверить
+    pozicia = Pozicia(1500, 0, "default")  # Перепроверить
+    Client.Tov = Pozicia(1500, 0, "default")
 
 
 # Вкусы
@@ -123,9 +121,11 @@ async def cmd_random(message: types.Message):
 
 @dp.callback_query_handler(lambda c: c.data == 'button1')
 async def process_callback_button1(callback_query: types.CallbackQuery):
-    await bot.send_photo(callback_query.from_user.id, ElfStraw, caption="Выбран вкус Strawberry ice", reply_markup=nav.MainKolMenu)
+    await bot.send_photo(callback_query.from_user.id, ElfStraw, caption="Выбран вкус Strawberry ice",
+                         reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Strawberry ice"
+    Client.Tov.vkus = "Strawberry ice"
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button2')
@@ -133,45 +133,74 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfMint, caption="Выбран вкус Mint", reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mint"
+    Client.Tov.vkus = "Mint"
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button3')
 async def process_callback_button1(callback_query: types.CallbackQuery):
-    await bot.send_photo(callback_query.from_user.id, ElfMango, caption="Выбран вкус Mango", reply_markup=nav.MainKolMenu)
+    await bot.send_photo(callback_query.from_user.id, ElfMango, caption="Выбран вкус Mango",
+                         reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mango"
+    Client.Tov.vkus = "Mango"
 
 
 # Выбор количества
 @dp.message_handler(text="Перейти к выбору количества")
 async def cmd_random(message: types.Message):
     await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15): ")
+
     @dp.message_handler()
     async def take_quantity(message: types.Message):
         global pozicia
         pozicia.quantity = message.text
-        print(pozicia.ReturnPozicia()) # Перепроверить
-        await message.reply("Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'")
+        print(pozicia.ReturnPozicia())  # Перепроверить
+        Client.Tov.quantity = message.text
+        await message.reply(
+            "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
+            reply_markup=nav.DecMenu)
 
-# Корзина
+
+# Навигация
+@dp.message_handler(text="Продолжить заказ")
+async def cmd_random(message: types.Message):
+    await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
+
+
 @dp.message_handler(text="Оформить заказ")
 async def cmd_random(message: types.Message):
-    await bot.send_message(message.from_user.id, 'Введите Ваш номер телефона (с +7)')
+    await bot.send_message(message.from_user.id,
+                           f"Ваш заказ: \nElf Bar {pozicia.type} затяжек \nВкус: {pozicia.vkus} \nКоличество: {pozicia.quantity}. Все правильно?",
+                           reply_markup=nav.DecMenu1)
 
-    @dp.message_handler(lambda message: message.text.startswith("+7"), Client.phone) # Перепроверить дважды
-    async def cmd_random(message: types.Message):
-        await bot.send_message(message.from_user.id, 'Введите ваш адрес')
 
-        @dp.message_handler(Client.address)
-        async def cmd_random(message: types.Message):
+@dp.message_handler(text="Нет")
+async def cmd_random(message: types.Message):
+    await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
+
+
+# Формирование клиента
+@dp.message_handler(text="Да")
+async def take_phone(message: types.Message):
+    await bot.send_message(message.from_user.id, "Введите ваш номер телефона")  # Перепроверить дважды
+
+    @dp.message_handler()
+    async def take_quantity(message: types.Message):
+        Client.phone = message.text
+        await bot.send_message(message.from_user.id, "Введите ваш адрес")
+
+        @dp.message_handler()
+        async def take_address(message: types.Message):
+            Client.address = message.text
             await bot.send_message(message.from_user.id, 'Введите ваше Имя')
 
-            @dp.message_handler(Client.Name)
-            async def cmd_random(message: types.Message):
+            @dp.message_handler()
+            async def take_name(message: types.Message):
+                Client.Name = message.text
                 await bot.send_message(message.from_user.id, 'Готово!')
 
 
-# Логика удаления и очищения корзины
+# Корзина
 # @dp.message_handler(text="Удалить товар")
 # async def cmd_random(message: types.Message):
 # ...
@@ -184,3 +213,4 @@ async def cmd_random(message: types.Message):
 
 if __name__ == '__main__':
     executor.start_polling(dp)
+
