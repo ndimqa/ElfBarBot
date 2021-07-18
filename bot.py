@@ -2,11 +2,15 @@
 # -*- coding: utf8 -*-
 
 
+from os import close
+import re
+from aiohttp import client
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from sqliter import SQLighter
+import time
 
 import markups as nav
 
@@ -28,31 +32,23 @@ class Pozicia:
         return self.pozicia
 
 
-pozicia: Pozicia
-
-
-class Zakaz:
-    zakaz: list
-
-    def __init__(self, zakaz):
-        self.zakaz = zakaz
 
 
 class Client:
-    Name: str
     phone: str
     address: str
-    Tov: Pozicia
+    zakaz: str
 
-    def __init__(self, Name, phone, addres, Tov) -> None:
-        self.Name = Name
+    def __init__(self, Name, phone, addres, zakaz) -> None:
         self.phone = phone
         self.address = addres
-        self.Tov = Tov
+        self.zakaz = zakaz
 
     def SendToDB(self):
         pass
-
+    
+    def ReturnAll(self):
+        return self.phone + " " + self.address + " " + self.zakaz
 
 db = SQLighter('Shop.db')
 
@@ -100,8 +96,6 @@ async def send_800(message: types.Message):
                          reply_markup=nav.MainVkusMenu)
     global pozicia
     pozicia = Pozicia(800, 0, "default")  # Перепроверить
-    Client.Tov = Pozicia(800, 0, "default")
-
 
 @dp.message_handler(text="ElfBar (Lux) на 1500 затяжек")
 async def send_1500(message: types.Message):
@@ -110,7 +104,6 @@ async def send_1500(message: types.Message):
                          reply_markup=nav.MainVkusMenu)
     global pozicia
     pozicia = Pozicia(1500, 0, "default")  # Перепроверить
-    Client.Tov = Pozicia(1500, 0, "default")
 
 
 # Вкусы
@@ -125,7 +118,6 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Strawberry ice"
-    Client.Tov.vkus = "Strawberry ice"
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button2')
@@ -133,7 +125,6 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfMint, caption="Выбран вкус Mint", reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mint"
-    Client.Tov.vkus = "Mint"
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button3')
@@ -142,20 +133,16 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mango"
-    Client.Tov.vkus = "Mango"
 
 
 # Выбор количества
 @dp.message_handler(text="Перейти к выбору количества")
 async def cmd_random(message: types.Message):
-    await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15): ")
-
-    @dp.message_handler()
+    await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15):")
+    @dp.message_handler(regexp='^([1-9][0-9]{0,2}|1000)$')
     async def take_quantity(message: types.Message):
         global pozicia
-        pozicia.quantity = message.text
-        print(pozicia.ReturnPozicia())  # Перепроверить
-        Client.Tov.quantity = message.text
+        pozicia.quantity = int(message.text)
         await message.reply(
             "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
             reply_markup=nav.DecMenu)
@@ -182,22 +169,23 @@ async def cmd_random(message: types.Message):
 # Формирование клиента
 @dp.message_handler(text="Да")
 async def take_phone(message: types.Message):
-    await bot.send_message(message.from_user.id, "Введите ваш номер телефона")  # Перепроверить дважды
+    global clien
+    zakaz = pozicia.ReturnPozicia()
+    clien = Client('none', 0, 'none', zakaz)
+    await bot.send_message(message.from_user.id, "Введите ваш номер телефона, начиная с цифры 8")  # Перепроверить дважды
 
-    @dp.message_handler()
-    async def take_quantity(message: types.Message):
-        Client.phone = message.text
+    @dp.message_handler(regexp='^[8][0-9]{10}$')
+    async def take_phone(message: types.Message):
+        global clien
+        clien.phone = message.text
+        print(clien.ReturnAll())
         await bot.send_message(message.from_user.id, "Введите ваш адрес")
 
         @dp.message_handler()
         async def take_address(message: types.Message):
-            Client.address = message.text
-            await bot.send_message(message.from_user.id, 'Введите ваше Имя')
-
-            @dp.message_handler()
-            async def take_name(message: types.Message):
-                Client.Name = message.text
-                await bot.send_message(message.from_user.id, 'Готово!')
+            clien.address = message.text
+            print(clien.ReturnAll())
+            await bot.send_message(message.from_user.id, 'Готово')
 
 
 # Корзина
