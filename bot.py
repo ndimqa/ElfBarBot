@@ -2,17 +2,15 @@
 # -*- coding: utf8 -*-
 
 
-from os import close
-from aiohttp import client
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
+from sqlite3 import Error
 
 
-import re
-import time
 import markups as nav
+import sqlite3
 
 
 korzina: int = 0
@@ -33,8 +31,6 @@ class Pozicia:
         return self.pozicia
 
 
-
-
 class Client:
     phone: str
     address: str
@@ -47,9 +43,41 @@ class Client:
 
     def SendToDB(self):
         pass
-    
+
     def ReturnAll(self):
         return self.phone + " " + self.address + " " + self.zakaz
+
+
+def create_connection(db_file):
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+    except Error as e:
+        print(e)
+
+    return conn
+
+
+def create_zakaz(conn, task):
+    sql = ''' INSERT INTO zakaz (type, vkus, quantity)
+              VALUES(?,?,?) '''
+    cur = conn.cursor()
+    cur.execute(sql, task)
+    conn.commit()
+    return cur.lastrowid
+
+
+def create_client(conn, task):
+    sql = ''' INSERT INTO client (id, phone, address, zakaz_type, zakaz_vkus, zakaz_quantity)
+              VALUES(?,?,?,?,?,?) '''
+    cur = conn.cursor()
+    cur.execute(sql, task)
+    conn.commit()
+    return cur.lastrowid
+
+
+database = r"C:\Users\baimu\PycharmProjects\elfbarBot\Shop.db"   # твой путь к бд
+conn = create_connection(database)
 
 
 # Фотографии из корневой папки
@@ -57,6 +85,7 @@ AllElfBar = open("AllElfBar.jpg", 'rb')
 ElfMint = open("Mint.jpg", 'rb')
 ElfMango = open("MangoBar.jpg", 'rb')
 ElfStraw = open("StrawBerryIce.jpg", 'rb')
+
 
 # Инициализация бота
 bot = Bot(token=TOKEN)
@@ -95,7 +124,8 @@ async def send_800(message: types.Message):
                          caption="Цена: 2100 \nОписание: Elf Bar 800 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 550мАч обеспечивает стабильность работы на протяжении 800 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
     global pozicia
-    pozicia = Pozicia(800, 0, "default")  # Перепроверить
+    pozicia = Pozicia(800, 0, "default")
+
 
 @dp.message_handler(text="ElfBar (Lux) на 1500 затяжек")
 async def send_1500(message: types.Message):
@@ -103,7 +133,7 @@ async def send_1500(message: types.Message):
                          caption="Цена: *цена* \nОписание: Elf Bar 1500 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 850мАч обеспечивает стабильность работы на протяжении 1500 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
     global pozicia
-    pozicia = Pozicia(1500, 0, "default")  # Перепроверить
+    pozicia = Pozicia(1500, 0, "default")
 
 
 # Вкусы
@@ -139,10 +169,14 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
 @dp.message_handler(text="Перейти к выбору количества")
 async def cmd_random(message: types.Message):
     await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15):")
+
     @dp.message_handler(regexp='^([1-9][0-9]{0,2}|1000)$')
     async def take_quantity(message: types.Message):
         global pozicia
         pozicia.quantity = int(message.text)
+        with conn:
+            task_1 = (pozicia.type, pozicia.vkus, pozicia.quantity)
+            create_zakaz(conn, task_1)
         await message.reply(
             "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
             reply_markup=nav.DecMenu)
@@ -172,7 +206,8 @@ async def take_phone(message: types.Message):
     global clien
     zakaz = pozicia.ReturnPozicia()
     clien = Client('none', 0, 'none', zakaz)
-    await bot.send_message(message.from_user.id, "Введите ваш номер телефона, начиная с цифры 8")  # Перепроверить дважды
+    await bot.send_message(message.from_user.id,
+                           "Введите ваш номер телефона, начиная с цифры 8")
 
     @dp.message_handler(regexp='^[8][0-9]{10}$')
     async def take_phone(message: types.Message):
@@ -185,9 +220,11 @@ async def take_phone(message: types.Message):
         async def take_address(message: types.Message):
             clien.address = message.text
             print(clien.ReturnAll())
+            with conn:
+                task_2 = (1, clien.phone, clien.address, pozicia.type, pozicia.vkus, pozicia.quantity)
+                create_client(conn, task_2)
             await bot.send_message(message.from_user.id, 'Готово')
 
- 
 
 # Корзина
 # @dp.message_handler(text="Удалить товар")
