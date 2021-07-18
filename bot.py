@@ -3,16 +3,19 @@
 
 
 from os import close
-import re
 from aiohttp import client
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from sqliter import SQLighter
-import time
 
+
+import re
+import time
 import markups as nav
+import sqlite3
+
 
 korzina: int = 0
 
@@ -50,7 +53,6 @@ class Client:
     def ReturnAll(self):
         return self.phone + " " + self.address + " " + self.zakaz
 
-db = SQLighter('Shop.db')
 
 # Фотографии из корневой папки
 AllElfBar = open("AllElfBar.jpg", 'rb')
@@ -187,6 +189,11 @@ async def take_phone(message: types.Message):
             print(clien.ReturnAll())
             await bot.send_message(message.from_user.id, 'Готово')
 
+ 
+# Подключение к дб и заполнение клиентской базы           
+with sqlite3.connect('Shop.db') as db:
+   cursor = db.cursor()
+   client_query = """ INSERT INTO client (phone, address, zakaz_type, zakaz_vkus, zakaz_quantity) VALUES(clien.phone, clien.address, pozicia.type, pozicia.vkus, pozicia.quantity) """
 
 # Корзина
 # @dp.message_handler(text="Удалить товар")
