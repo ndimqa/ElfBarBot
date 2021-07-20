@@ -13,8 +13,8 @@ import markups as nav
 import sqlite3
 
 
-korzina: str = ''
-KolvoTovara = 0
+allKorz: list = []
+korzina: list = []
 
 
 
@@ -76,6 +76,13 @@ def create_client(conn, task):
     cur.execute(sql, task)
     conn.commit()
     return cur.lastrowid
+
+
+def delete_record(conn, task):
+    sql = ''' DELETE FROM client WHERE zakaz_type = ?, zakaz_vkus = ?, zakaz_quantity = ?'''
+    cur = conn.cursor()
+    cur.execute(sql, task)
+    conn.commit()
 
 
 database = r"C:\Users\baimu\PycharmProjects\elfbarBot\Shop.db"   # твой путь к бд
@@ -177,12 +184,12 @@ async def cmd_random(message: types.Message):
         global pozicia
         global KolvoTovara
         global korzina
+        global allKorz
         pozicia.quantity = int(message.text)
-        KolvoTovara += pozicia.quantity
-        korzina += pozicia.ReturnPozicia() + ","
-        with conn: # я думаю это не нужно потому что если человек захочет очистить корзину то все данные все равно остануться в этой таблице
-            task_1 = (pozicia.type, pozicia.vkus, pozicia.quantity)
-            create_zakaz(conn, task_1)
+        korzina.append(pozicia.type)
+        korzina.append(pozicia.vkus)
+        korzina.append(pozicia.quantity)
+        allKorz.append(korzina)
         await message.reply(
             "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
             reply_markup=nav.DecMenu)
@@ -227,7 +234,7 @@ async def take_phone(message: types.Message):
             clien.address = message.text
             print(clien.ReturnAll())
             with conn:
-                task_2 = (1, clien.phone, clien.address, pozicia.type, pozicia.vkus, pozicia.quantity)
+                task_2 = (1, clien.phone, clien.address, korzina[0], korzina[1], korzina[2])
                 create_client(conn, task_2)
             await bot.send_message(message.from_user.id, 'Готово')
 
@@ -235,14 +242,25 @@ async def take_phone(message: types.Message):
 # Корзина
 @dp.message_handler(text="Удалить товар")
 async def cmd_random(message: types.Message):
-    await bot.send_message(message.from_user.id, "Какой товар вы хотите удалить?" + korzina)
-    #не доделано
+    await bot.send_message(message.from_user.id, "Какой товар вы хотите удалить? (Введите цифру): ")
+
+    @dp.message_handler()
+    async def udalenie(message: types.Message):
+        global index
+        index = int(message.text)
+        allKorz.pop(index)
+        with conn:
+            task_2 = (korzina[0], korzina[1], korzina[2])
+            delete_record(conn, task_2)
+        await bot.send_message(message.from_user.id, "Товар удален")
+
 
 
 @dp.message_handler(text="Очистить корзину")
-async def take_address(message: types.Message):
-    global korzina
-    korzina = ''
+async def clean(message: types.Message):
+    global allKorz
+    allKorz = ''
+    await bot.send_message(message.from_user.id, "Корзина очищена")
 
 
 if __name__ == '__main__':
