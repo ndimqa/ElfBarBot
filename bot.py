@@ -13,7 +13,9 @@ import markups as nav
 import sqlite3
 
 
-korzina: int = 0
+korzina: str = ''
+KolvoTovara = 0
+
 
 
 class Pozicia:
@@ -173,8 +175,12 @@ async def cmd_random(message: types.Message):
     @dp.message_handler(regexp='^([1-9][0-9]{0,2}|1000)$')
     async def take_quantity(message: types.Message):
         global pozicia
+        global KolvoTovara
+        global korzina
         pozicia.quantity = int(message.text)
-        with conn:
+        KolvoTovara += pozicia.quantity
+        korzina += pozicia.ReturnPozicia() + ","
+        with conn: # я думаю это не нужно потому что если человек захочет очистить корзину то все данные все равно остануться в этой таблице
             task_1 = (pozicia.type, pozicia.vkus, pozicia.quantity)
             create_zakaz(conn, task_1)
         await message.reply(
@@ -191,7 +197,7 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Оформить заказ")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id,
-                           f"Ваш заказ: \nElf Bar {pozicia.type} затяжек \nВкус: {pozicia.vkus} \nКоличество: {pozicia.quantity}. Все правильно?",
+                           f"Ваш заказ: "+ korzina,
                            reply_markup=nav.DecMenu1)
 
 
@@ -227,14 +233,16 @@ async def take_phone(message: types.Message):
 
 
 # Корзина
-# @dp.message_handler(text="Удалить товар")
-# async def cmd_random(message: types.Message):
-# ...
-# if korzina = 0, nav.mainMenu
-# if korzina != 0, korzina--
+@dp.message_handler(text="Удалить товар")
+async def cmd_random(message: types.Message):
+    await bot.send_message(message.from_user.id, "Какой товар вы хотите удалить?" + korzina)
+    #не доделано
 
-# @dp.message_handler(text="Очистить корзину")
-# async def cmd_random(message: types.Message):
+
+@dp.message_handler(text="Очистить корзину")
+async def take_address(message: types.Message):
+    global korzina
+    korzina = ''
 
 
 if __name__ == '__main__':
