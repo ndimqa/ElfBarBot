@@ -68,18 +68,9 @@ def create_connection(db_file):
 def IfAvaliable():
     pass # смотреть есть ли в наличии товар если нет то он должен отправлять сообщение 
 
-def create_zakaz(conn, task):
-    sql = ''' INSERT INTO zakaz (type, vkus, quantity)
-              VALUES(?,?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, task)
-    conn.commit()
-    return cur.lastrowid
-
-
 def create_client(conn, task):
-    sql = ''' INSERT INTO client (id, phone, address, zakaz_type, zakaz_vkus, zakaz_quantity)
-              VALUES(?,?,?,?,?,?) '''
+    sql = ''' INSERT INTO client (id, phone, address, zakaz)
+              VALUES(?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, task)
     conn.commit()
