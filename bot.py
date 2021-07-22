@@ -16,7 +16,13 @@ import sqlite3
 allKorz: list = []
 korzina: list = []
 
-
+def listToString(s): 
+    
+    # initialize an empty string
+    str1 = " " 
+    
+    # return string  
+    return (str1.join(s))
 
 class Pozicia:
     type: int
@@ -38,7 +44,7 @@ class Client:
     address: str
     zakaz: str
 
-    def __init__(self, Name, phone, addres, zakaz) -> None:
+    def __init__(self, phone, addres, zakaz) -> None:
         self.phone = phone
         self.address = addres
         self.zakaz = zakaz
@@ -59,6 +65,8 @@ def create_connection(db_file):
 
     return conn
 
+def IfAvaliable():
+    pass # смотреть есть ли в наличии товар если нет то он должен отправлять сообщение 
 
 def create_zakaz(conn, task):
     sql = ''' INSERT INTO zakaz (type, vkus, quantity)
@@ -79,13 +87,13 @@ def create_client(conn, task):
 
 
 def delete_record(conn, task):
-    sql = ''' DELETE FROM client WHERE zakaz_type = ?, zakaz_vkus = ?, zakaz_quantity = ?'''
+    sql = ''' DELETE FROM client WHERE zakaz_type = ?, zakaz_vkus = ?, zakaz_quantity = ? '''
     cur = conn.cursor()
     cur.execute(sql, task)
     conn.commit()
 
 
-database = r"C:\Users\baimu\PycharmProjects\elfbarBot\Shop.db"   # твой путь к бд
+database = r"Shop.db"   # твой путь к бд
 conn = create_connection(database)
 
 
@@ -182,14 +190,11 @@ async def cmd_random(message: types.Message):
     @dp.message_handler(regexp='^([1-9][0-9]{0,2}|1000)$')
     async def take_quantity(message: types.Message):
         global pozicia
-        global KolvoTovara
         global korzina
         global allKorz
         pozicia.quantity = int(message.text)
-        korzina.append(pozicia.type)
-        korzina.append(pozicia.vkus)
-        korzina.append(pozicia.quantity)
-        allKorz.append(korzina)
+        # как то нужно индексировать позиции в заказе
+        allKorz.append(pozicia.ReturnPozicia())
         await message.reply(
             "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
             reply_markup=nav.DecMenu)
@@ -204,7 +209,7 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Оформить заказ")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id,
-                           f"Ваш заказ: "+ korzina,
+                           f"Ваш заказ: " + listToString(allKorz),
                            reply_markup=nav.DecMenu1)
 
 
@@ -234,7 +239,7 @@ async def take_phone(message: types.Message):
             clien.address = message.text
             print(clien.ReturnAll())
             with conn:
-                task_2 = (1, clien.phone, clien.address, korzina[0], korzina[1], korzina[2])
+                task_2 = (1, clien.phone, clien.address, listToString(allKorz))# вместо корзины allkorzina
                 create_client(conn, task_2)
             await bot.send_message(message.from_user.id, 'Готово')
 
@@ -242,16 +247,14 @@ async def take_phone(message: types.Message):
 # Корзина
 @dp.message_handler(text="Удалить товар")
 async def cmd_random(message: types.Message):
+    await bot.send_message(message.from_user.id, "Ваша корзина: " + listToString(allKorz)) 
     await bot.send_message(message.from_user.id, "Какой товар вы хотите удалить? (Введите цифру): ")
 
     @dp.message_handler()
     async def udalenie(message: types.Message):
         global index
-        index = int(message.text)
+        index = int(message.text) - 1
         allKorz.pop(index)
-        with conn:
-            task_2 = (korzina[0], korzina[1], korzina[2])
-            delete_record(conn, task_2)
         await bot.send_message(message.from_user.id, "Товар удален")
 
 
@@ -259,7 +262,7 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Очистить корзину")
 async def clean(message: types.Message):
     global allKorz
-    allKorz = ''
+    allKorz.clear()
     await bot.send_message(message.from_user.id, "Корзина очищена")
 
 
