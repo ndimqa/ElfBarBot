@@ -39,9 +39,8 @@ MainKolBt = KeyboardButton('Перейти к выбору количества'
 MainKolMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(MainKolBt, btnKat)
 
 #Корзина
-btnBuy = KeyboardButton('Продолжить покупку')
 btnClear = KeyboardButton('Очистить корзину')
 btnOform = KeyboardButton('Оформить заказ')
-KorzMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnBuy, btnClear, btnOform ,btnMain)
+KorzMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnClear, btnOform, btnKat)
 
 
