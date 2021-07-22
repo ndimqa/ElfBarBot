@@ -113,7 +113,10 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Корзина")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Вы в корзине', reply_markup=nav.KorzMenu)
-    await bot.send_message(message.from_user.id, "Ваша корзина: ElfBar " + listToString(allKorz))
+        if not allKorz:
+        await bot.send_message(message.from_user.id, 'В корзине пусто')
+    else:
+        await bot.send_message(message.from_user.id, "Ваша корзина: " + listToString(allKorz))
 
 
 # Каталог
@@ -191,7 +194,7 @@ async def cmd_random(message: types.Message):
 
 
 # Навигация
-@dp.message_handler(text="Продолжить заказ")
+@dp.message_handler(text="Продолжить покупку")
 async def cmd_random(message: types.Message):
     allKorz.clear()
     await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
