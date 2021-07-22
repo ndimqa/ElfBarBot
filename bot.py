@@ -112,7 +112,7 @@ async def cmd_random(message: types.Message):
 
 @dp.message_handler(text="Корзина")
 async def cmd_random(message: types.Message):
-    await bot.send_message(message.from_user.id, 'Корзина', reply_markup=nav.KorzMenu)
+    await bot.send_message(message.from_user.id, 'Вы в корзине', reply_markup=nav.KorzMenu)
     await bot.send_message(message.from_user.id, "Ваша корзина: ElfBar " + listToString(allKorz))
 
 
@@ -183,12 +183,10 @@ async def cmd_random(message: types.Message):
     @dp.message_handler(regexp='^([1-9][0-9]{0,2}|1000)$')
     async def take_quantity(message: types.Message):
         global pozicia
-        global korzina
         global allKorz
         pozicia.quantity = int(message.text)
-        allKorz.append(pozicia.ReturnPozicia())
         await message.reply(
-            "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
+            "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для добавления заказа в корзину нажмите 'Добавить в корзину'",
             reply_markup=nav.DecMenu)
 
 
@@ -199,8 +197,11 @@ async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
 
 
-@dp.message_handler(text="Оформить заказ")
+@dp.message_handler(text="Добавить в корзину")
 async def cmd_random(message: types.Message):
+    global allKorz
+    global pozicia
+    allKorz.append(pozicia.ReturnPozicia())
     await bot.send_message(message.from_user.id,
                            f"Ваш заказ: " + listToString(allKorz),
                            reply_markup=nav.DecMenu1)
@@ -214,6 +215,19 @@ async def cmd_random(message: types.Message):
 
 # Формирование клиента
 @dp.message_handler(text="Да")
+async def take_phone(message: types.Message):
+    await bot.send_message(message.from_user.id, 'Товар добавлен в корзину! Для оформления заказа перейдите в корзину. Можете продолжать покупку', reply_markup=nav.mainMenu)
+
+
+# Корзина
+@dp.message_handler(text="Очистить корзину")
+async def clean(message: types.Message):
+    global allKorz
+    allKorz.clear()
+    await bot.send_message(message.from_user.id, "Корзина очищена")
+
+
+@dp.message_handler(text="Оформить заказ")
 async def take_phone(message: types.Message):
     global clien
     zakaz = pozicia.ReturnPozicia()
@@ -236,30 +250,8 @@ async def take_phone(message: types.Message):
             with conn:
                 task_2 = (tg_user, clien.phone, clien.address, listToString(allKorz))
                 create_client(conn, task_2)
-            await bot.send_message(message.from_user.id, 'Готово!', reply_markup=nav.mainMenu)
-
-
-# Корзина
-@dp.message_handler(text="Удалить товар")
-async def cmd_random(message: types.Message):
-    await bot.send_message(message.from_user.id, "Ваша корзина: ElfBar" + listToString(allKorz))
-    await bot.send_message(message.from_user.id, "Какой товар вы хотите удалить? (Введите цифру): ")
-
-    @dp.message_handler()
-    async def udalenie(message: types.Message):
-        global index
-        index = int(message.text) - 1
-        allKorz.pop(index)
-        await bot.send_message(message.from_user.id, "Товар удален")
-
-
-@dp.message_handler(text="Очистить корзину")
-async def clean(message: types.Message):
-    global allKorz
-    allKorz.clear()
-    await bot.send_message(message.from_user.id, "Корзина очищена")
+            await bot.send_message(message.from_user.id, 'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, закажите доставку или заберите товар сами с адреса: *адрес*', reply_markup=nav.mainMenu)
 
 
 if __name__ == '__main__':
     executor.start_polling(dp)
-
