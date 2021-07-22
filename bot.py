@@ -12,17 +12,13 @@ import re
 import markups as nav
 import sqlite3
 
-
 allKorz: list = []
-korzina: list = []
 
-def listToString(s): 
-    
-    # initialize an empty string
-    str1 = " " 
-    
-    # return string  
+
+def listToString(s):
+    str1 = " "
     return (str1.join(s))
+
 
 class Pozicia:
     type: int
@@ -65,11 +61,13 @@ def create_connection(db_file):
 
     return conn
 
+
 def IfAvaliable():
-    pass # смотреть есть ли в наличии товар если нет то он должен отправлять сообщение 
+    pass  # смотреть есть ли в наличии товар если нет то он должен отправлять сообщение
+
 
 def create_client(conn, task):
-    sql = ''' INSERT INTO client (id, phone, address, zakaz)
+    sql = ''' INSERT INTO client (tg_user, phone, address, zakaz)
               VALUES(?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, task)
@@ -78,21 +76,14 @@ def create_client(conn, task):
 
 
 def delete_record(conn, task):
-    sql = ''' DELETE FROM client WHERE zakaz_type = ?, zakaz_vkus = ?, zakaz_quantity = ? '''
+    sql = ''' DELETE FROM client WHERE zakaz = ? '''
     cur = conn.cursor()
     cur.execute(sql, task)
     conn.commit()
 
 
-database = r"Shop.db"   # твой путь к бд
+database = r"Shop.db"  # твой путь к бд
 conn = create_connection(database)
-
-
-# Фотографии из корневой папки
-AllElfBar = open("AllElfBar.jpg", 'rb')
-ElfMint = open("Mint.jpg", 'rb')
-ElfMango = open("MangoBar.jpg", 'rb')
-ElfStraw = open("StrawBerryIce.jpg", 'rb')
 
 
 # Инициализация бота
@@ -122,12 +113,15 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Корзина")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Корзина', reply_markup=nav.KorzMenu)
+    await bot.send_message(message.from_user.id, "Ваша корзина: ElfBar " + listToString(allKorz))
 
 
 # Каталог
 # Отправка фотографии и описания при нажатии
 @dp.message_handler(text="ElfBar (Lux) на 800 затяжек")
 async def send_800(message: types.Message):
+    global AllElfBar
+    AllElfBar = open("AllElfBar.jpg", 'rb')
     await bot.send_photo(message.from_user.id, AllElfBar,
                          caption="Цена: 2100 \nОписание: Elf Bar 800 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 550мАч обеспечивает стабильность работы на протяжении 800 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
@@ -137,6 +131,8 @@ async def send_800(message: types.Message):
 
 @dp.message_handler(text="ElfBar (Lux) на 1500 затяжек")
 async def send_1500(message: types.Message):
+    global AllElfBar
+    AllElfBar = open("AllElfBar.jpg", 'rb')
     await bot.send_photo(message.from_user.id, AllElfBar,
                          caption="Цена: *цена* \nОписание: Elf Bar 1500 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 850мАч обеспечивает стабильность работы на протяжении 1500 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
@@ -152,6 +148,8 @@ async def cmd_random(message: types.Message):
 
 @dp.callback_query_handler(lambda c: c.data == 'button1')
 async def process_callback_button1(callback_query: types.CallbackQuery):
+    global ElfStraw
+    ElfStraw = open("StrawBerryIce.jpg", 'rb')
     await bot.send_photo(callback_query.from_user.id, ElfStraw, caption="Выбран вкус Strawberry ice",
                          reply_markup=nav.MainKolMenu)
     global pozicia
@@ -160,6 +158,8 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data == 'button2')
 async def process_callback_button1(callback_query: types.CallbackQuery):
+    global ElfMint
+    ElfMint = open("Mint.jpg", 'rb')
     await bot.send_photo(callback_query.from_user.id, ElfMint, caption="Выбран вкус Mint", reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mint"
@@ -167,6 +167,8 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data == 'button3')
 async def process_callback_button1(callback_query: types.CallbackQuery):
+    global ElfMango
+    ElfMango = open("MangoBar.jpg", 'rb')
     await bot.send_photo(callback_query.from_user.id, ElfMango, caption="Выбран вкус Mango",
                          reply_markup=nav.MainKolMenu)
     global pozicia
@@ -184,7 +186,6 @@ async def cmd_random(message: types.Message):
         global korzina
         global allKorz
         pozicia.quantity = int(message.text)
-        # как то нужно индексировать позиции в заказе
         allKorz.append(pozicia.ReturnPozicia())
         await message.reply(
             "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для оформления закзаза намите кнопку 'Оформить заказ'",
@@ -194,6 +195,7 @@ async def cmd_random(message: types.Message):
 # Навигация
 @dp.message_handler(text="Продолжить заказ")
 async def cmd_random(message: types.Message):
+    allKorz.clear()
     await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
 
 
@@ -206,6 +208,7 @@ async def cmd_random(message: types.Message):
 
 @dp.message_handler(text="Нет")
 async def cmd_random(message: types.Message):
+    allKorz.clear()
     await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
 
 
@@ -214,7 +217,7 @@ async def cmd_random(message: types.Message):
 async def take_phone(message: types.Message):
     global clien
     zakaz = pozicia.ReturnPozicia()
-    clien = Client('none', 0, 'none', zakaz)
+    clien = Client('none', 'none', zakaz)
     await bot.send_message(message.from_user.id,
                            "Введите ваш номер телефона, начиная с цифры 8")
 
@@ -227,18 +230,19 @@ async def take_phone(message: types.Message):
 
         @dp.message_handler()
         async def take_address(message: types.Message):
+            tg_user: str = message.from_user.first_name
             clien.address = message.text
             print(clien.ReturnAll())
             with conn:
-                task_2 = (1, clien.phone, clien.address, listToString(allKorz))# вместо корзины allkorzina
+                task_2 = (tg_user, clien.phone, clien.address, listToString(allKorz))
                 create_client(conn, task_2)
-            await bot.send_message(message.from_user.id, 'Готово')
+            await bot.send_message(message.from_user.id, 'Готово!', reply_markup=nav.mainMenu)
 
 
 # Корзина
 @dp.message_handler(text="Удалить товар")
 async def cmd_random(message: types.Message):
-    await bot.send_message(message.from_user.id, "Ваша корзина: " + listToString(allKorz)) 
+    await bot.send_message(message.from_user.id, "Ваша корзина: ElfBar" + listToString(allKorz))
     await bot.send_message(message.from_user.id, "Какой товар вы хотите удалить? (Введите цифру): ")
 
     @dp.message_handler()
@@ -247,7 +251,6 @@ async def cmd_random(message: types.Message):
         index = int(message.text) - 1
         allKorz.pop(index)
         await bot.send_message(message.from_user.id, "Товар удален")
-
 
 
 @dp.message_handler(text="Очистить корзину")
