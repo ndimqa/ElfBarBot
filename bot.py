@@ -31,8 +31,7 @@ class Pozicia:
         self.vkus = vkus
 
     def ReturnPozicia(self):
-        self.pozicia = self.vkus + " " + str(self.type) + " " + str(self.quantity)
-        return self.pozicia
+        return " Elfbar " + self.vkus + " " + str(self.type) + " затяжек " + str(self.quantity) + " штук"
 
 
 class Client:
@@ -62,8 +61,8 @@ def create_connection(db_file):
     return conn
 
 
-def IfAvaliable():
-    pass  # смотреть есть ли в наличии товар если нет то он должен отправлять сообщение
+def IfAvaliable(conn, task):
+    pass
 
 
 def create_client(conn, task):
@@ -113,7 +112,7 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Корзина")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Вы в корзине', reply_markup=nav.KorzMenu)
-        if not allKorz:
+    if not allKorz:
         await bot.send_message(message.from_user.id, 'В корзине пусто')
     else:
         await bot.send_message(message.from_user.id, "Ваша корзина: " + listToString(allKorz))
