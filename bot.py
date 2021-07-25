@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 
+from aiogram.types import message_entity
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
@@ -16,7 +17,7 @@ allKorz: list = []
 
 
 def listToString(s):
-    str1 = " "
+    str1 = ","
     return (str1.join(s))
 
 
@@ -31,7 +32,7 @@ class Pozicia:
         self.vkus = vkus
 
     def ReturnPozicia(self):
-        return " Elfbar " + self.vkus + " " + str(self.type) + " затяжек " + str(self.quantity) + " штук"
+        return " Elfbar " + self.vkus + " " + str(self.type) + " затяжек " + str(self.quantity) + " штук(а)"   
 
 
 class Client:
@@ -43,9 +44,6 @@ class Client:
         self.phone = phone
         self.address = addres
         self.zakaz = zakaz
-
-    def SendToDB(self):
-        pass
 
     def ReturnAll(self):
         return self.phone + " " + self.address + " " + self.zakaz
@@ -61,9 +59,23 @@ def create_connection(db_file):
     return conn
 
 
-def IfAvaliable(conn, task):
-    pass
+def IfAvaliable_1500(conn, type):
+    sql = '''SELECT kolvo FROM tovary1500 WHERE vkus = (?)'''
+    cur = conn.cursor()
+    cur.execute(sql, [type])
+    if int(cur.fetchone()[0]) == 0:
+        conn.commit()
+        return False    
+    conn.commit()
 
+def IfAvaliable_800(conn, type):
+    sql = '''SELECT kolvo FROM tovary800 WHERE vkus = (?)'''
+    cur = conn.cursor()
+    cur.execute(sql, [type])
+    if int(cur.fetchone()[0]) == 0:
+        conn.commit()
+        return False    
+    conn.commit()
 
 def create_client(conn, task):
     sql = ''' INSERT INTO client (tg_user, phone, address, zakaz)
@@ -72,13 +84,6 @@ def create_client(conn, task):
     cur.execute(sql, task)
     conn.commit()
     return cur.lastrowid
-
-
-def delete_record(conn, task):
-    sql = ''' DELETE FROM client WHERE zakaz = ? '''
-    cur = conn.cursor()
-    cur.execute(sql, task)
-    conn.commit()
 
 
 database = r"Shop.db"  # твой путь к бд
@@ -136,7 +141,7 @@ async def send_1500(message: types.Message):
     global AllElfBar
     AllElfBar = open("AllElfBar.jpg", 'rb')
     await bot.send_photo(message.from_user.id, AllElfBar,
-                         caption="Цена: *цена* \nОписание: Elf Bar 1500 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 850мАч обеспечивает стабильность работы на протяжении 1500 затяжек. Это позволяет получить максимальное удовольствие от использования.",
+                         caption="Цена: 2500 \nОписание: Elf Bar 1500 обеспечивает яркий и насыщенный вкус благодаря специальной системе нагрева. Аккумулятор ёмкостью 850мАч обеспечивает стабильность работы на протяжении 1500 затяжек. Это позволяет получить максимальное удовольствие от использования.",
                          reply_markup=nav.MainVkusMenu)
     global pozicia
     pozicia = Pozicia(1500, 0, "default")
@@ -175,12 +180,13 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mango"
+    
 
 
 # Выбор количества
 @dp.message_handler(text="Перейти к выбору количества")
 async def cmd_random(message: types.Message):
-    await message.reply("Введите какое количество данной электронной сигареты вы хотите (макс. 15):")
+    await message.reply("Введите какое количество данной электронной сигареты вы хотите: ")
 
     @dp.message_handler(regexp='^([1-9][0-9]{0,2}|1000)$')
     async def take_quantity(message: types.Message):
@@ -246,13 +252,13 @@ async def take_phone(message: types.Message):
 
         @dp.message_handler()
         async def take_address(message: types.Message):
-            tg_user: str = message.from_user.first_name
+            tg_user: str = message.from_user.id
             clien.address = message.text
             print(clien.ReturnAll())
             with conn:
                 task_2 = (tg_user, clien.phone, clien.address, listToString(allKorz))
                 create_client(conn, task_2)
-            await bot.send_message(message.from_user.id, 'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, закажите доставку или заберите товар сами с адреса: *адрес*', reply_markup=nav.mainMenu)
+            await bot.send_message(message.from_user.id, 'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, подождите с вами свяжуться в ближайшее время, чтобы обсудить детали доставки или самовывоза.', reply_markup=nav.mainMenu)
 
 
 if __name__ == '__main__':
