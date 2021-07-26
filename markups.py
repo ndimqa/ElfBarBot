@@ -43,4 +43,5 @@ btnClear = KeyboardButton('Очистить корзину')
 btnOform = KeyboardButton('Оформить заказ')
 KorzMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnClear, btnOform, btnKat)
 
-
+#Если нет в наличии
+NotAvailableMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnKat)

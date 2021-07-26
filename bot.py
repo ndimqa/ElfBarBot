@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 
 
-from aiogram.types import message_entity
+from aiogram.types import message, message_auto_delete_timer_changed, message_entity
 from config import TOKEN
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
@@ -59,13 +59,13 @@ def create_connection(db_file):
     return conn
 
 
-def IfAvaliable_1500(conn, type):
+def Avaliable_1500(conn, type):
     sql = '''SELECT kolvo FROM tovary1500 WHERE vkus = (?)'''
     cur = conn.cursor()
     cur.execute(sql, [type])
     if int(cur.fetchone()[0]) == 0:
         conn.commit()
-        return False    
+        return False
     conn.commit()
 
 def IfAvaliable_800(conn, type):
@@ -73,8 +73,8 @@ def IfAvaliable_800(conn, type):
     cur = conn.cursor()
     cur.execute(sql, [type])
     if int(cur.fetchone()[0]) == 0:
-        conn.commit()
-        return False    
+        async def cmd_random(message: types.Message):
+            await message.reply("Нету в наличии", reply_markup=nav.VkusMenu)  
     conn.commit()
 
 def create_client(conn, task):
@@ -180,6 +180,9 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mango"
+    with conn:
+        if not Avaliable_1500(conn, pozicia.vkus):
+            await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
     
 
 
