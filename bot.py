@@ -58,6 +58,15 @@ def create_connection(db_file):
 
     return conn
 
+def Kolichestvo(conn, type, kol_vo):
+    sql = '''SELECT kolvo FROM tovary1500 WHERE vkus = (?)'''
+    cur = conn.cursor()
+    cur.execute(sql, [type])
+    if int(cur.fetchone()[0]) - kol_vo <= 0:
+        print('к сожалению у нас нету такого количества, только ',cur.fetchone()[0])
+    else:
+        cur.fetchone()[0] = int(cur.fetchone()[0]) - kol_vo
+    conn.commit()
 
 def Avaliable_1500(conn, type):
     sql = '''SELECT kolvo FROM tovary1500 WHERE vkus = (?)'''
@@ -68,13 +77,13 @@ def Avaliable_1500(conn, type):
         return False
     conn.commit()
 
-def IfAvaliable_800(conn, type):
+def Avaliable_800(conn, type):
     sql = '''SELECT kolvo FROM tovary800 WHERE vkus = (?)'''
     cur = conn.cursor()
     cur.execute(sql, [type])
     if int(cur.fetchone()[0]) == 0:
-        async def cmd_random(message: types.Message):
-            await message.reply("Нету в наличии", reply_markup=nav.VkusMenu)  
+        conn.commit()
+        return False
     conn.commit()
 
 def create_client(conn, task):
@@ -161,6 +170,14 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Strawberry ice"
+    if pozicia.type == 1500:
+        with conn:
+            if not Avaliable_1500(conn, pozicia.vkus):
+                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
+    elif pozicia.type == 800:
+         with conn:
+            if not Avaliable_800(conn, pozicia.vkus):
+                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'button2')
@@ -170,7 +187,14 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfMint, caption="Выбран вкус Mint", reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mint"
-
+    if pozicia.type == 1500:
+        with conn:
+            if not Avaliable_1500(conn, pozicia.vkus):
+                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
+    elif pozicia.type == 800:
+         with conn:
+            if not Avaliable_800(conn, pozicia.vkus):
+                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
 
 @dp.callback_query_handler(lambda c: c.data == 'button3')
 async def process_callback_button1(callback_query: types.CallbackQuery):
@@ -180,10 +204,14 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mango"
-    with conn:
-        if not Avaliable_1500(conn, pozicia.vkus):
-            await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    
+    if pozicia.type == 1500:
+        with conn:
+            if not Avaliable_1500(conn, pozicia.vkus):
+                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
+    elif pozicia.type == 800:
+         with conn:
+            if not Avaliable_800(conn, pozicia.vkus):
+                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
 
 
 # Выбор количества
