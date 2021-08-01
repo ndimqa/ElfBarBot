@@ -225,13 +225,14 @@ async def cmd_random(message: types.Message):
         global allKorz
         pozicia.quantity = int(message.text)
         await message.reply(
-            "Если вы хотите продолжить заказ, нажмите кнопку 'Продолжить заказ' \n Для добавления заказа в корзину нажмите 'Добавить в корзину'",
+            "Если вы хотите продолжить заказ и очистить корзину, нажмите кнопку 'Продолжить заказ' \n Для добавления заказа в корзину нажмите 'Добавить в корзину'",
             reply_markup=nav.DecMenu)
 
 
 # Навигация
-@dp.message_handler(text="Продолжить покупку")
+@dp.message_handler(text="Продолжить заказ")
 async def cmd_random(message: types.Message):
+    global allKorz
     allKorz.clear()
     await bot.send_message(message.from_user.id, 'Главное меню', reply_markup=nav.mainMenu)
 
