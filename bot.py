@@ -70,11 +70,17 @@ def Avaliable_1500(conn, type):
     cur = conn.cursor()
     cur.execute(sql, [type])
     if int(cur.fetchone()[0]) == 0:
-        conn.commit()
         return False
-    conn.commit()
     return True
 
+#если в наличии есть меньше товара чем тот которрый клиент хочет купить 
+def QuantityMoreThanKolvo1500(conn, type, quantity):
+    sql = '''SELECT kolvo FROM tovary1500 WHERE vkus = (?)'''
+    cur = conn.cursor()
+    cur.execute(sql, [type])
+    if int(cur.fetchone()[0]) - quantity < 0:
+        return True
+    return False
 
 # def change_kolvo_1500(conn, type):
 #     cur = conn.cursor()
@@ -89,10 +95,17 @@ def Avaliable_800(conn, type):
     cur = conn.cursor()
     cur.execute(sql, [type])
     if int(cur.fetchone()[0]) == 0:
-        conn.commit()
         return False
-    conn.commit()
     return True
+
+#если в наличии есть меньше товара чем тот которрый клиент хочет купить 
+def QuantityMoreThanKolvo800(conn, type, quantity):
+    sql = '''SELECT kolvo FROM tovary800 WHERE vkus = (?)'''
+    cur = conn.cursor()
+    cur.execute(sql, [type])
+    if int(cur.fetchone()[0]) - quantity < 0:
+        return True
+    return False
 
 
 # def change_kolvo_800(conn, type):
@@ -108,7 +121,6 @@ def create_client(conn, task):
               VALUES(?,?,?,?) '''
     cur = conn.cursor()
     cur.execute(sql, task)
-    conn.commit()
     return cur.lastrowid
 
 
@@ -144,7 +156,7 @@ async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Вы в корзине', reply_markup=nav.KorzMenu)
     global finalPrice
     if not allKorz:
-        await bot.send_message(message.from_user.id, 'В корзине пусто')
+        await bot.send_message(message.from_user.id, 'В корзине пусто', reply_markup=nav.NotAvailableMenu)
     else:
         await bot.send_message(message.from_user.id,
                                f"Ваша корзина: " + listToString(allKorz) + ". Сумма ваших товаров: " + str(sum(
@@ -242,28 +254,54 @@ async def cmd_random(message: types.Message):
     global allKorz
     global pozicia
     global finalPrice
-    allKorz.append(pozicia.ReturnPozicia())
-    finalPrice.append(pozicia.price)
     # ! Потести с этой штукой, у меня тут ерроры выдаются, это кажется правильнее чем писать одно и то же под каждым вкусом (так как их потом станет больше)
     if pozicia.type == 1500:
         with conn:
-            if Avaliable_1500(conn, pozicia.vkus):
+            if QuantityMoreThanKolvo1500(conn, pozicia.vkus, pozicia.quantity):
+                await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии в таком количестве",
+                                       reply_markup=nav.NotAvailableMenu)
+            
+                # change_kolvo_1500(conn, pozicia.vkus)
+            elif Avaliable_1500(conn, pozicia.vkus):
+                cur = conn.cursor()
+                sql = '''SELECT kolvo FROM tovary1500 WHERE vkus = (?)'''
+                cur.execute(sql, [pozicia.vkus])
+                new_kolvo = int(cur.fetchone()[0]) - pozicia.quantity
+                sql1 = f'''UPDATE tovary1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
+                cur.execute(sql1, [pozicia.vkus])
+                allKorz.append(pozicia.ReturnPozicia())
+                finalPrice.append(pozicia.price)
                 await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
                                        reply_markup=nav.DecMenu1)
-                # change_kolvo_1500(conn, pozicia.vkus)
+                
+
             else:
                 await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии",
-                                       reply_markup=nav.DecMenu1)
+                                       reply_markup=nav.NotAvailableMenu)
 
     if pozicia.type == 800:
         with conn:
-            if Avaliable_800(conn, pozicia.vkus):
+            if QuantityMoreThanKolvo800(conn, pozicia.vkus, pozicia.quantity):
+                await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии в таком количестве",
+                                       reply_markup=nav.NotAvailableMenu)
+            
+                # change_kolvo_800(conn, pozicia.vkus)
+            elif Avaliable_800(conn, pozicia.vkus):
+                cur = conn.cursor()
+                sql = '''SELECT kolvo FROM tovary800 WHERE vkus = (?)'''
+                cur.execute(sql, [pozicia.vkus])
+                new_kolvo = int(cur.fetchone()[0]) - pozicia.quantity
+                sql1 = f'''UPDATE tovary800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
+                cur.execute(sql1, [pozicia.vkus])
+                allKorz.append(pozicia.ReturnPozicia())
+                finalPrice.append(pozicia.price)
                 await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
                                        reply_markup=nav.DecMenu1)
-                # change_kolvo_800(conn, pozicia.vkus)
+                
+
             else:
                 await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии",
-                                       reply_markup=nav.DecMenu1)
+                                       reply_markup=nav.NotAvailableMenu)
 
 
 @dp.message_handler(text="Нет")
@@ -312,10 +350,13 @@ async def take_phone(message: types.Message):
             with conn:
                 task_2 = (tg_user, clien.phone, clien.address, listToString(allKorz))
                 create_client(conn, task_2)
+                conn.commit()
             await bot.send_message(message.from_user.id,
                                    'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, подождите с вами свяжуться в ближайшее время, чтобы обсудить детали доставки или самовывоза.',
                                    reply_markup=nav.mainMenu)
-
+            global allKorz
+            allKorz.clear()
+            
 
 if __name__ == '__main__':
     executor.start_polling(dp)
