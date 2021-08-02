@@ -15,7 +15,6 @@ import sqlite3
 
 allKorz: list = []
 finalPrice: list = []
-price: int
 
 
 def listToString(s):
@@ -34,7 +33,7 @@ class Pozicia:
         self.quantity = quantity
         self.vkus = vkus
         if self.type == 800:
-            self.price =  2100 * self.quantity
+            self.price = 2100 * self.quantity
         else:
             self.price = 2500 * self.quantity
 
@@ -76,12 +75,13 @@ def Avaliable_1500(conn, type):
     conn.commit()
     return True
 
-def change_kolvo_1500(conn, type):
-    cur = conn.cursor()
-    new_kolvo = int(cur.fetchone()[0]) - 1
-    sql1 = f'''UPDATE tovary1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
-    cur.execute(sql1, [type])
-    conn.commit()
+
+# def change_kolvo_1500(conn, type):
+#     cur = conn.cursor()
+#     new_kolvo = int(cur.fetchone()[0]) - 1
+#     sql1 = f'''UPDATE tovary1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
+#     cur.execute(sql1, [type])
+#     conn.commit()
 
 
 def Avaliable_800(conn, type):
@@ -95,12 +95,12 @@ def Avaliable_800(conn, type):
     return True
 
 
-def change_kolvo_800(conn, type):
-    cur = conn.cursor()
-    new_kolvo = int(cur.fetchone()[0]) - 1
-    sql1 = f'''UPDATE tovary800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
-    cur.execute(sql1, [type])
-    conn.commit()
+# def change_kolvo_800(conn, type):
+#     cur = conn.cursor()
+#     new_kolvo = int(cur.fetchone()[0]) - 1
+#     sql1 = f'''UPDATE tovary800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
+#     cur.execute(sql1, [type])
+#     conn.commit()
 
 
 def create_client(conn, task):
@@ -114,7 +114,6 @@ def create_client(conn, task):
 
 database = r"Shop.db"  # твой путь к бд
 conn = create_connection(database)
-
 
 # Инициализация бота
 bot = Bot(token=TOKEN)
@@ -143,10 +142,13 @@ async def cmd_random(message: types.Message):
 @dp.message_handler(text="Корзина")
 async def cmd_random(message: types.Message):
     await bot.send_message(message.from_user.id, 'Вы в корзине', reply_markup=nav.KorzMenu)
+    global finalPrice
     if not allKorz:
         await bot.send_message(message.from_user.id, 'В корзине пусто')
     else:
-        await bot.send_message(message.from_user.id, f"Ваша корзина: " + listToString(allKorz) + ". Сумма ваших товаров: " + sum(finalPrice) + " тг")
+        await bot.send_message(message.from_user.id,
+                               f"Ваша корзина: " + listToString(allKorz) + ". Сумма ваших товаров: " + str(sum(
+                                   finalPrice)) + " тг")
 
 
 # Каталог
@@ -187,17 +189,8 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Strawberry ice"
-    '''
-    if pozicia.type == 1500:
-        with conn:
-            if not Avaliable_1500(conn, pozicia.vkus):
-                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    elif pozicia.type == 800:
-         with conn:
-            if not Avaliable_800(conn, pozicia.vkus):
-                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    '''
-    
+
+
 @dp.callback_query_handler(lambda c: c.data == 'button2')
 async def process_callback_button1(callback_query: types.CallbackQuery):
     global ElfMint
@@ -205,16 +198,7 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
     await bot.send_photo(callback_query.from_user.id, ElfMint, caption="Выбран вкус Mint", reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mint"
-    '''
-    if pozicia.type == 1500:
-        with conn:
-            if not Avaliable_1500(conn, pozicia.vkus):
-                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    elif pozicia.type == 800:
-         with conn:
-            if not Avaliable_800(conn, pozicia.vkus):
-                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    '''
+
 
 @dp.callback_query_handler(lambda c: c.data == 'button3')
 async def process_callback_button1(callback_query: types.CallbackQuery):
@@ -224,16 +208,7 @@ async def process_callback_button1(callback_query: types.CallbackQuery):
                          reply_markup=nav.MainKolMenu)
     global pozicia
     pozicia.vkus = "Mango"
-    '''
-    if pozicia.type == 1500:
-        with conn:
-            if not Avaliable_1500(conn, pozicia.vkus):
-                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    elif pozicia.type == 800:
-         with conn:
-            if not Avaliable_800(conn, pozicia.vkus):
-                await bot.send_message(callback_query.from_user.id,' нет в наличии', reply_markup=nav.NotAvailableMenu)
-    '''
+
 
 # Выбор количества
 @dp.message_handler(text="Перейти к выбору количества")
@@ -244,7 +219,14 @@ async def cmd_random(message: types.Message):
     async def take_quantity(message: types.Message):
         global pozicia
         global allKorz
-        await message.reply("Если вы хотите продолжить заказ и очистить корзину, нажмите кнопку 'Продолжить заказ' \n Для добавления заказа в корзину нажмите 'Добавить в корзину'", reply_markup=nav.DecMenu)
+        pozicia.quantity = int(message.text)
+        if pozicia.type == 1500:
+            pozicia.price = 2500 * pozicia.quantity
+        if pozicia.type == 800:
+            pozicia.price = 2100 * pozicia.quantity
+        await message.reply(
+            "Если вы хотите продолжить заказ и очистить корзину, нажмите кнопку 'Продолжить заказ' \n Для добавления заказа в корзину нажмите 'Добавить в корзину'",
+            reply_markup=nav.DecMenu)
 
 
 # Навигация
@@ -259,27 +241,29 @@ async def cmd_random(message: types.Message):
 async def cmd_random(message: types.Message):
     global allKorz
     global pozicia
-    global price
     global finalPrice
     allKorz.append(pozicia.ReturnPozicia())
     finalPrice.append(pozicia.price)
-    await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz), reply_markup=nav.DecMenu1)
     # ! Потести с этой штукой, у меня тут ерроры выдаются, это кажется правильнее чем писать одно и то же под каждым вкусом (так как их потом станет больше)
     if pozicia.type == 1500:
-         with conn:
-             if Avaliable_1500(conn, pozicia.vkus):
-                 await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz), reply_markup=nav.DecMenu1)
-             if not Avaliable_1500(conn, pozicia.vkus):
-                 await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии", reply_markup=nav.DecMenu1)
-     
+        with conn:
+            if Avaliable_1500(conn, pozicia.vkus):
+                await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
+                                       reply_markup=nav.DecMenu1)
+                # change_kolvo_1500(conn, pozicia.vkus)
+            else:
+                await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии",
+                                       reply_markup=nav.DecMenu1)
+
     if pozicia.type == 800:
-         with conn:
-             if Avaliable_800(conn, pozicia.vkus):
-                 await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
-                                        reply_markup=nav.DecMenu1)
-             if not Avaliable_800(conn, pozicia.vkus):
-                 await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии",
-                                        reply_markup=nav.DecMenu1)
+        with conn:
+            if Avaliable_800(conn, pozicia.vkus):
+                await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
+                                       reply_markup=nav.DecMenu1)
+                # change_kolvo_800(conn, pozicia.vkus)
+            else:
+                await bot.send_message(message.from_user.id, f"Извните, товара вкуса {pozicia.vkus} нет в наличии",
+                                       reply_markup=nav.DecMenu1)
 
 
 @dp.message_handler(text="Нет")
@@ -291,7 +275,9 @@ async def cmd_random(message: types.Message):
 # Формирование клиента
 @dp.message_handler(text="Да")
 async def take_phone(message: types.Message):
-    await bot.send_message(message.from_user.id, 'Товар добавлен в корзину! Для оформления заказа перейдите в корзину. Можете продолжать покупку', reply_markup=nav.mainMenu)
+    await bot.send_message(message.from_user.id,
+                           'Товар добавлен в корзину! Для оформления заказа перейдите в корзину. Можете продолжать покупку',
+                           reply_markup=nav.mainMenu)
 
 
 # Корзина
@@ -305,10 +291,11 @@ async def clean(message: types.Message):
 @dp.message_handler(text="Оформить заказ")
 async def take_phone(message: types.Message):
     global clien
-    global finalPrice
+    global pozicia
     zakaz = pozicia.ReturnPozicia()
     clien = Client('none', 'none', zakaz)
-    await bot.send_message(message.from_user.id, f"Сумма ваших товаров: {sum(finalPrice)} тг. Введите ваш номер телефона, начиная с цифры 8 чтобы продолжить покупку")
+    await bot.send_message(message.from_user.id,
+                           f"Сумма ваших товаров: {pozicia.price} тг. Введите ваш номер телефона, начиная с цифры 8 чтобы продолжить покупку")
 
     @dp.message_handler(regexp='^[8][0-9]{10}$')
     async def take_phone(message: types.Message):
@@ -325,7 +312,9 @@ async def take_phone(message: types.Message):
             with conn:
                 task_2 = (tg_user, clien.phone, clien.address, listToString(allKorz))
                 create_client(conn, task_2)
-            await bot.send_message(message.from_user.id, 'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, подождите с вами свяжуться в ближайшее время, чтобы обсудить детали доставки или самовывоза.', reply_markup=nav.mainMenu)
+            await bot.send_message(message.from_user.id,
+                                   'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, подождите с вами свяжуться в ближайшее время, чтобы обсудить детали доставки или самовывоза.',
+                                   reply_markup=nav.mainMenu)
 
 
 if __name__ == '__main__':
