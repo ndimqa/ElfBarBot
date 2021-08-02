@@ -74,7 +74,7 @@ def Avaliable_1500(conn, type):
 def change_kolvo_1500(conn, type):
     cur = conn.cursor()
     new_kolvo = int(cur.fetchone()[0]) - 1
-    sql1 = f'''UPDATE tovaty1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
+    sql1 = f'''UPDATE tovary1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
     cur.execute(sql1, [type])
     conn.commit()
 
@@ -92,7 +92,7 @@ def Avaliable_800(conn, type):
 def change_kolvo_800(conn, type):
     cur = conn.cursor()
     new_kolvo = int(cur.fetchone()[0]) - 1
-    sql1 = f'''UPDATE tovaty800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
+    sql1 = f'''UPDATE tovary800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
     cur.execute(sql1, [type])
     conn.commit()
 
