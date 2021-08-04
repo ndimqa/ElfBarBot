@@ -16,6 +16,8 @@ import sqlite3
 allKorz: list = []
 finalPrice: list = []
 
+executes_1500: dict = {}
+executes_800: dict = {}
 
 def listToString(s):
     str1 = ","
@@ -82,14 +84,6 @@ def QuantityMoreThanKolvo1500(conn, type, quantity):
         return True
     return False
 
-# def change_kolvo_1500(conn, type):
-#     cur = conn.cursor()
-#     new_kolvo = int(cur.fetchone()[0]) - 1
-#     sql1 = f'''UPDATE tovary1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
-#     cur.execute(sql1, [type])
-#     conn.commit()
-
-
 def Avaliable_800(conn, type):
     sql = '''SELECT kolvo FROM tovary800 WHERE vkus = (?)'''
     cur = conn.cursor()
@@ -106,14 +100,6 @@ def QuantityMoreThanKolvo800(conn, type, quantity):
     if int(cur.fetchone()[0]) - quantity < 0:
         return True
     return False
-
-
-# def change_kolvo_800(conn, type):
-#     cur = conn.cursor()
-#     new_kolvo = int(cur.fetchone()[0]) - 1
-#     sql1 = f'''UPDATE tovary800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
-#     cur.execute(sql1, [type])
-#     conn.commit()
 
 
 def create_client(conn, task):
@@ -268,7 +254,7 @@ async def cmd_random(message: types.Message):
                 cur.execute(sql, [pozicia.vkus])
                 new_kolvo = int(cur.fetchone()[0]) - pozicia.quantity
                 sql1 = f'''UPDATE tovary1500 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
-                cur.execute(sql1, [pozicia.vkus])
+                executes_1500[sql1] = [pozicia.vkus]
                 allKorz.append(pozicia.ReturnPozicia())
                 finalPrice.append(pozicia.price)
                 await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
@@ -292,7 +278,7 @@ async def cmd_random(message: types.Message):
                 cur.execute(sql, [pozicia.vkus])
                 new_kolvo = int(cur.fetchone()[0]) - pozicia.quantity
                 sql1 = f'''UPDATE tovary800 SET kolvo = {new_kolvo} WHERE vkus = (?)'''
-                cur.execute(sql1, [pozicia.vkus])
+                executes_800[sql1] = [pozicia.vkus]
                 allKorz.append(pozicia.ReturnPozicia())
                 finalPrice.append(pozicia.price)
                 await bot.send_message(message.from_user.id, f"Ваш заказ: " + listToString(allKorz),
@@ -354,7 +340,18 @@ async def take_phone(message: types.Message):
             await bot.send_message(message.from_user.id,
                                    'Готово! Ваш заказ принят и уже готовится к сборке. Пожалуйста, подождите с вами свяжуться в ближайшее время, чтобы обсудить детали доставки или самовывоза.',
                                    reply_markup=nav.mainMenu)
-            global allKorz
+            if executes_1500:
+                with conn:
+                    cur = conn.cursor()
+                    for i in executes_1500:
+                        cur.execute(i,executes_1500[i])
+
+            if executes_800:
+                  with conn:
+                    cur = conn.cursor()
+                    for i in executes_800:
+                        cur.execute(i,executes_800[i])
+
             allKorz.clear()
             
 
