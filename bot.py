@@ -351,6 +351,7 @@ async def take_phone(message: types.Message):
                     cur = conn.cursor()
                     for i in executes_800:
                         cur.execute(i,executes_800[i])
+            await bot.send_message(264200848, 'Новый заказ: ' + str(task_2)) # это отвечает за то чтобы отпрравлять заказчику заказы сразу как они оформлены
 
             allKorz.clear()
             
